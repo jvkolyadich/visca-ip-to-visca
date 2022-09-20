@@ -1,0 +1,20 @@
+{
+  "name": "visca-ip-to-visca",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js || (tsc && node src/index.js)",
+    "build": "tsc",
+    "list-ports": "node src/list-ports.js || (tsc && node src/list-ports.js)"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^18.7.18"
+  },
+  "dependencies": {
+    "@serialport/parser-delimiter": "^10.3.0",
+    "serialport": "^10.4.0"
+  }
+}
