@@ -84,7 +84,7 @@ class ViscaIpPacket {
       case ViscaIpPacketType.controlReply:
         return value
       default:
-        throw new Error(`Unknown packet type: ${value.toString(16)}`)
+        throw new Error(`Unknown packet type: ${numberToHexString(value)}`)
     }
   }
 
@@ -127,6 +127,13 @@ function bufferToHexString(buffer: Buffer) {
     .join(' ')
 }
 
+function numberToHexString(number: number, bytes: number = 2) {
+  const numberArray = []
+  for (let i = (bytes - 1); i >= 0; i--)
+    numberArray.push(number >>> (i * 8))
+  return bufferToHexString(Buffer.from(numberArray))
+}
+
 function loadConfig() {
   try {
     const configData = readFileSync(configFile)
@@ -167,18 +174,22 @@ function main() {
   })
 
   socket.on('message', (msgBuffer, remoteInfo) => {
-    const receivedPacket = ViscaIpPacket.fromBuffer(msgBuffer)
-    console.log(`\nSocket RECV: ${receivedPacket.toHexString()}`)
-
-    currentSequenceNumber = receivedPacket.sequenceNumber
-    currentRemoteInfo = remoteInfo
-    currentPacketType = receivedPacket.type
-
-    console.log(`Serial SEND: ${bufferToHexString(receivedPacket.payload)}`)
-    serialPort.write(receivedPacket.payload, (error) => {
-      console.log('Error while writing to serial port:')
-      console.log(error)
-    })
+    try {
+      const receivedPacket = ViscaIpPacket.fromBuffer(msgBuffer)
+      console.log(`\nSocket RECV: ${receivedPacket.toHexString()}`)
+  
+      currentSequenceNumber = receivedPacket.sequenceNumber
+      currentRemoteInfo = remoteInfo
+      currentPacketType = receivedPacket.type
+  
+      console.log(`Serial SEND: ${bufferToHexString(receivedPacket.payload)}`)
+      serialPort.write(receivedPacket.payload, (error) => {
+        console.log('Error while writing to serial port:')
+        console.log(error)
+      })
+    } catch(e) {
+      console.log(`\nSocket RECV Error: ${e.message}. Ignoring packet.`)
+    }
   })
 
   const serialPortParser = new DelimiterParser({
