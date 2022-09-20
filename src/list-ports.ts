@@ -8,7 +8,7 @@ SerialPort.list()
       console.log(`\t${portInfo.path}`)
     })
   } else {
-    console.log('No ports are avalable')
+    console.log('No ports are available')
   }
 })
 .catch(console.log)
