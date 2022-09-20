@@ -157,12 +157,12 @@ function main() {
 
   socket.on('message', (msgBuffer, remoteInfo) => {
     const receivedPacket = ViscaIpPacket.fromBuffer(msgBuffer)
-    console.log(`Socket recieved ${receivedPacket.toString()}`)
+    console.log(`\nSocket RECV: ${receivedPacket.toHexString()}`)
 
     currentSequenceNumber = receivedPacket.sequenceNumber
     currentRemoteInfo = remoteInfo
 
-    console.log(`Writing payload ${bufferToHexString(receivedPacket.payload)} to serial port`)
+    console.log(`Serial SEND: ${bufferToHexString(receivedPacket.payload)}`)
     serialPort.write(receivedPacket.payload, (error) => {
       console.log('Error while writing to serial port:')
       console.log(error)
@@ -182,9 +182,7 @@ function main() {
   })
 
   serialPortParser.on('data', (responseData: Buffer) => {
-    console.log(
-      `Received response ${bufferToHexString(responseData)} from serial port`
-    )
+    console.log(`Serial RECV: ${bufferToHexString(responseData)}`)
 
     const responsePacket = ViscaIpPacket.fromPayload(
       ViscaIpPacketType.reply,
@@ -192,7 +190,7 @@ function main() {
       responseData
     )
 
-    console.log(`Socket sending ${responsePacket.toString()}`)
+    console.log(`Socket SEND: ${responsePacket.toHexString()}`)
     socket.send(
       responsePacket.toBuffer(),
       currentRemoteInfo.port,
