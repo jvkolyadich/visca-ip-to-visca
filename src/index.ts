@@ -162,7 +162,7 @@ function main() {
     currentSequenceNumber = receivedPacket.sequenceNumber
     currentRemoteInfo = remoteInfo
 
-    console.log(`Writing payload ${receivedPacket.payload} to serial port`)
+    console.log(`Writing payload ${bufferToHexString(receivedPacket.payload)} to serial port`)
     serialPort.write(receivedPacket.payload, (error) => {
       console.log('Error while writing to serial port:')
       console.log(error)
@@ -198,8 +198,10 @@ function main() {
       currentRemoteInfo.port,
       currentRemoteInfo.address,
       (error) => {
-        console.log('Error while sending reply packet:')
-        console.log(error)
+        if (error) {
+          console.log('Error while sending reply packet:')
+          console.log(error)
+        }
       }
     )
   })
