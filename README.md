@@ -4,12 +4,6 @@ Allows a visca-ip controller to communicate with a visca device
 
 ## Usage
 
-Install typescript if it's not installed already
-
-```
-npm install -g typescript
-```
-
 Install dependencies
 
 ```
