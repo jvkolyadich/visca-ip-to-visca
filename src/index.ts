@@ -15,6 +15,9 @@ enum ViscaIpPacketType {
   command = 0x0100,
   inquiry = 0x0110,
   reply = 0x0111,
+  deviceSettingCommand = 0x0120,
+  controlCommand = 0x0200,
+  controlReply = 0x0201,
 }
 
 class ViscaIpPacket {
@@ -72,10 +75,17 @@ class ViscaIpPacket {
   }
 
   static _parseType(value: number) {
-    if (value === ViscaIpPacketType.command) return ViscaIpPacketType.command
-    if (value === ViscaIpPacketType.inquiry) return ViscaIpPacketType.inquiry
-    if (value === ViscaIpPacketType.reply) return ViscaIpPacketType.command
-    throw new Error(`Unknown packet type: ${value.toString(16)}`)
+    switch (value) {
+      case ViscaIpPacketType.command:
+      case ViscaIpPacketType.inquiry:
+      case ViscaIpPacketType.reply:
+      case ViscaIpPacketType.deviceSettingCommand:
+      case ViscaIpPacketType.controlCommand:
+      case ViscaIpPacketType.controlReply:
+        return value
+      default:
+        throw new Error(`Unknown packet type: ${value.toString(16)}`)
+    }
   }
 
   static fromBuffer(buffer: Buffer) {
@@ -132,6 +142,7 @@ function loadConfig() {
 
 let currentSequenceNumber: number = null
 let currentRemoteInfo: RemoteInfo = null
+let currentPacketType: ViscaIpPacketType = null
 
 function main() {
   loadConfig()
@@ -161,6 +172,7 @@ function main() {
 
     currentSequenceNumber = receivedPacket.sequenceNumber
     currentRemoteInfo = remoteInfo
+    currentPacketType = receivedPacket.type
 
     console.log(`Serial SEND: ${bufferToHexString(receivedPacket.payload)}`)
     serialPort.write(receivedPacket.payload, (error) => {
@@ -184,8 +196,12 @@ function main() {
   serialPortParser.on('data', (responseData: Buffer) => {
     console.log(`Serial RECV: ${bufferToHexString(responseData)}`)
 
+    const responsePacketType = currentPacketType === ViscaIpPacketType.controlCommand
+    ? ViscaIpPacketType.controlReply
+    : ViscaIpPacketType.reply
+
     const responsePacket = ViscaIpPacket.fromPayload(
-      ViscaIpPacketType.reply,
+      responsePacketType,
       currentSequenceNumber,
       responseData
     )
