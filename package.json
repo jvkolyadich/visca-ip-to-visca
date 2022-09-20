@@ -16,5 +16,11 @@
   "dependencies": {
     "@serialport/parser-delimiter": "^10.3.0",
     "serialport": "^10.4.0"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 2,
+    "semi": false,
+    "singleQuote": true
   }
 }

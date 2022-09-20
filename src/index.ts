@@ -6,9 +6,9 @@ import { readFileSync } from 'fs'
 const configFile = 'config.json'
 
 const config = {
-	udpPort: 52381,
-	serialPort: '/dev/ttyUSB0',
-	baudRate: 9600,
+  udpPort: 52381,
+  serialPort: '/dev/ttyUSB0',
+  baudRate: 9600,
 }
 
 enum ViscaIpPacketType {
@@ -27,7 +27,7 @@ class ViscaIpPacket {
     type: ViscaIpPacketType,
     length: number,
     sequenceNumber: number,
-    payload: Buffer,
+    payload: Buffer
   ) {
     this.type = type
     this.length = length
@@ -36,19 +36,21 @@ class ViscaIpPacket {
   }
 
   toString() {
-    return `${this.typeAsString()} packet`
-    + ` with a sequence number of ${this.sequenceNumber}`
-    + ` and a payload of ${bufferToHexString(this.payload)}`
+    return (
+      `${this.typeAsString()} packet` +
+      ` with a sequence number of ${this.sequenceNumber}` +
+      ` and a payload of ${bufferToHexString(this.payload)}`
+    )
   }
 
   typeAsString() {
     return this.type === ViscaIpPacketType.command
-    ? 'command'
-    : this.type === ViscaIpPacketType.inquiry
-    ? 'inquiry'
-    : this.type === ViscaIpPacketType.reply
-    ? 'reply'
-    : 'unknown'
+      ? 'command'
+      : this.type === ViscaIpPacketType.inquiry
+      ? 'inquiry'
+      : this.type === ViscaIpPacketType.reply
+      ? 'reply'
+      : 'unknown'
   }
 
   toHexString() {
@@ -57,13 +59,15 @@ class ViscaIpPacket {
 
   toBuffer() {
     return Buffer.from([
-      this.type >>> 8, this.type,
-      this.length >>> 8, this.length,
+      this.type >>> 8,
+      this.type,
+      this.length >>> 8,
+      this.length,
       this.sequenceNumber >>> 24,
       this.sequenceNumber >>> 16,
       this.sequenceNumber >>> 8,
       this.sequenceNumber,
-      ...this.payload
+      ...this.payload,
     ])
   }
 
@@ -81,15 +85,10 @@ class ViscaIpPacket {
     const payload = buffer.subarray(8)
     if (payload.length !== length)
       throw new Error(
-        `Expected payload with length ${length}.`
-        +` Actual length: ${payload.length}`
+        `Expected payload with length ${length}.` +
+          ` Actual length: ${payload.length}`
       )
-    return new ViscaIpPacket(
-      type,
-      length,
-      sequenceNumber,
-      payload,
-    )
+    return new ViscaIpPacket(type, length, sequenceNumber, payload)
   }
 
   static fromPayload(
@@ -97,53 +96,45 @@ class ViscaIpPacket {
     sequenceNumber: number,
     payload: Buffer
   ) {
-    return new ViscaIpPacket(
-      type,
-      payload.length,
-      sequenceNumber,
-      payload,
-    )
+    return new ViscaIpPacket(type, payload.length, sequenceNumber, payload)
   }
 }
 
 function bufferToHexString(buffer: Buffer) {
   return buffer
-  .toString('hex')
-  .toUpperCase()
-  .split('')
-  .reduce((array, character, index) => {
-    if (index % 2 == 0) {
-      array.push(character)
-    } else {
-      const previousIndex = Math.floor(index / 2)
-      array[previousIndex] += character
-    }
-    return array
-  }, [] as string[])
-  .join(' ')
+    .toString('hex')
+    .toUpperCase()
+    .split('')
+    .reduce((array, character, index) => {
+      if (index % 2 == 0) {
+        array.push(character)
+      } else {
+        const previousIndex = Math.floor(index / 2)
+        array[previousIndex] += character
+      }
+      return array
+    }, [] as string[])
+    .join(' ')
 }
 
 function loadConfig() {
-	try {
-		const configData = readFileSync(configFile)
-		const loadedConfig = JSON.parse(configData.toString())
+  try {
+    const configData = readFileSync(configFile)
+    const loadedConfig = JSON.parse(configData.toString())
 
-		if (loadedConfig.udpPort)
-      config.udpPort = loadedConfig.udpPort
-		if (loadedConfig.serialPort)
-      config.serialPort = loadedConfig.serialPort
-		if (loadedConfig.baudRate)
-      config.baudRate = loadedConfig.baudRate
-	} catch(error) {
-		console.log('Failed to load config from file')
-	}
+    if (loadedConfig.udpPort) config.udpPort = loadedConfig.udpPort
+    if (loadedConfig.serialPort) config.serialPort = loadedConfig.serialPort
+    if (loadedConfig.baudRate) config.baudRate = loadedConfig.baudRate
+  } catch (error) {
+    console.log('Failed to load config from file')
+  }
 }
 
 let currentSequenceNumber: number = null
 let currentRemoteInfo: RemoteInfo = null
 
 function main() {
-	loadConfig()
+  loadConfig()
 
   const serialPort = new SerialPort(
     {
@@ -159,27 +150,27 @@ function main() {
 
   const socket = createSocket('udp4')
 
-	socket.on('error', (error) => {
-		console.log('Socket error:')
-		console.log(error)
-	})
-	
-	socket.on('message', (msgBuffer, remoteInfo) => {
+  socket.on('error', (error) => {
+    console.log('Socket error:')
+    console.log(error)
+  })
+
+  socket.on('message', (msgBuffer, remoteInfo) => {
     const receivedPacket = ViscaIpPacket.fromBuffer(msgBuffer)
-		console.log(`Socket recieved ${receivedPacket.toString()}`)
+    console.log(`Socket recieved ${receivedPacket.toString()}`)
 
     currentSequenceNumber = receivedPacket.sequenceNumber
     currentRemoteInfo = remoteInfo
 
     console.log(`Writing payload ${receivedPacket.payload} to serial port`)
-		serialPort.write(receivedPacket.payload, (error) => {
+    serialPort.write(receivedPacket.payload, (error) => {
       console.log('Error while writing to serial port:')
-		  console.log(error)
+      console.log(error)
     })
-	})
+  })
 
   const serialPortParser = new DelimiterParser({
-    delimiter: [0xFF],
+    delimiter: [0xff],
     includeDelimiter: true,
   })
 
@@ -191,7 +182,9 @@ function main() {
   })
 
   serialPortParser.on('data', (responseData: Buffer) => {
-    console.log(`Received response ${bufferToHexString(responseData)} from serial port`)
+    console.log(
+      `Received response ${bufferToHexString(responseData)} from serial port`
+    )
 
     const responsePacket = ViscaIpPacket.fromPayload(
       ViscaIpPacketType.reply,
@@ -210,15 +203,15 @@ function main() {
       }
     )
   })
-	
-	socket.on('listening', () => {
-		const address = socket.address()
-		console.log(`Socket listening at ${address.address}:${address.port}`)
-	})
+
+  socket.on('listening', () => {
+    const address = socket.address()
+    console.log(`Socket listening at ${address.address}:${address.port}`)
+  })
 
   console.log(
-    `Opening serial port ${config.serialPort}`
-    + ` with baud rate ${config.baudRate}`
+    `Opening serial port ${config.serialPort}` +
+      ` with baud rate ${config.baudRate}`
   )
   serialPort.open((error) => {
     if (error) {
