@@ -4,20 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/index.ts",
-    "build": "tsc",
-    "list-ports": "ts-node src/list-ports.ts"
+    "start": "node src/index.js",
+    "list-ports": "node src/list-ports.js"
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^18.7.18"
-  },
   "dependencies": {
-    "@serialport/parser-delimiter": "^10.3.0",
-    "serialport": "^10.4.0",
-    "ts-node": "^10.9.1",
-    "typescript": "^4.8.3"
+    "serialport": "^10.4.0"
   },
   "prettier": {
     "trailingComma": "es5",

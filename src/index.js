@@ -1,7 +1,7 @@
-import { SerialPort } from 'serialport'
-import { DelimiterParser } from '@serialport/parser-delimiter'
-import { createSocket, RemoteInfo } from 'dgram'
-import { readFileSync } from 'fs'
+const { SerialPort } = require('serialport')
+const { DelimiterParser } = require('@serialport/parser-delimiter')
+const { createSocket } = require('dgram')
+const { readFileSync } = require('fs')
 
 const configFile = 'config.json'
 
@@ -11,26 +11,21 @@ const config = {
   baudRate: 9600,
 }
 
-enum ViscaIpPacketType {
-  command = 0x0100,
-  inquiry = 0x0110,
-  reply = 0x0111,
-  deviceSettingCommand = 0x0120,
-  controlCommand = 0x0200,
-  controlReply = 0x0201,
+const ViscaIpPacketType = {
+  command: 0x0100,
+  inquiry: 0x0110,
+  reply: 0x0111,
+  deviceSettingCommand: 0x0120,
+  controlCommand: 0x0200,
+  controlReply: 0x0201,
 }
 
 class ViscaIpPacket {
-  type: ViscaIpPacketType
-  length: number
-  sequenceNumber: number
-  payload: Buffer
-
   constructor(
-    type: ViscaIpPacketType,
-    length: number,
-    sequenceNumber: number,
-    payload: Buffer
+    type,
+    length,
+    sequenceNumber,
+    payload
   ) {
     this.type = type
     this.length = length
@@ -74,7 +69,7 @@ class ViscaIpPacket {
     ])
   }
 
-  static _parseType(value: number) {
+  static _parseType(value) {
     switch (value) {
       case ViscaIpPacketType.command:
       case ViscaIpPacketType.inquiry:
@@ -88,7 +83,7 @@ class ViscaIpPacket {
     }
   }
 
-  static fromBuffer(buffer: Buffer) {
+  static fromBuffer(buffer) {
     const type = ViscaIpPacket._parseType(buffer.readUInt16BE(0))
     const length = buffer.readUInt16BE(2)
     const sequenceNumber = buffer.readUInt32BE(4)
@@ -102,15 +97,15 @@ class ViscaIpPacket {
   }
 
   static fromPayload(
-    type: ViscaIpPacketType,
-    sequenceNumber: number,
-    payload: Buffer
+    type,
+    sequenceNumber,
+    payload
   ) {
     return new ViscaIpPacket(type, payload.length, sequenceNumber, payload)
   }
 }
 
-function bufferToHexString(buffer: Buffer) {
+function bufferToHexString(buffer) {
   return buffer
     .toString('hex')
     .toUpperCase()
@@ -123,11 +118,11 @@ function bufferToHexString(buffer: Buffer) {
         array[previousIndex] += character
       }
       return array
-    }, [] as string[])
+    }, [])
     .join(' ')
 }
 
-function numberToHexString(number: number, bytes: number = 2) {
+function numberToHexString(number, bytes = 2) {
   const numberArray = []
   for (let i = (bytes - 1); i >= 0; i--)
     numberArray.push(number >>> (i * 8))
@@ -147,9 +142,9 @@ function loadConfig() {
   }
 }
 
-let currentSequenceNumber: number = null
-let currentRemoteInfo: RemoteInfo = null
-let currentPacketType: ViscaIpPacketType = null
+let currentSequenceNumber = null
+let currentRemoteInfo = null
+let currentPacketType = null
 
 function main() {
   loadConfig()
@@ -206,7 +201,7 @@ function main() {
     console.log(error)
   })
 
-  serialPortParser.on('data', (responseData: Buffer) => {
+  serialPortParser.on('data', (responseData) => {
     console.log(`Serial RECV: ${bufferToHexString(responseData)}`)
 
     const responsePacketType = currentPacketType === ViscaIpPacketType.controlCommand
