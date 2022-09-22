@@ -50,7 +50,7 @@ class ViscaIpPacket {
     return this.type === ViscaIpPacketType.command ? 'command'
     : this.type === ViscaIpPacketType.inquiry ? 'inquiry'
     : this.type === ViscaIpPacketType.reply ? 'reply'
-    : this.type === ViscaIpPacketType.deviceSettingCommand? 'device setting command'
+    : this.type === ViscaIpPacketType.deviceSettingCommand ? 'device setting command'
     : this.type === ViscaIpPacketType.controlCommand ? 'control command'
     : this.type === ViscaIpPacketType.controlReply ? 'control reply'
     : 'unknown'
