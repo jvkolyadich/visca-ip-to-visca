@@ -184,8 +184,10 @@ function main() {
   
       console.log(`Serial SEND: ${bufferToHexString(receivedPacket.payload)}`)
       serialPort.write(receivedPacket.payload, (error) => {
-        console.log('Error while writing to serial port:')
-        console.log(error)
+        if (error) {
+          console.log('Error while writing to serial port:')
+          console.log(error)
+        }
       })
     } catch(e) {
       console.log(`\nSocket RECV Error: ${e.message}. Ignoring packet.`)
